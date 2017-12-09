@@ -1,19 +1,44 @@
 // YOUR CODE HERE:
+
+$(document).ready(function() {
+  
+
+  var assignButtons = () => {
+
+    $('.username').on('click', function() {
+      var targetUser = this.innerHTML; // "nuno"
+      console.log(targetUser);
+
+      targetUser = app.users[targetUser];
+      me.friends.push(targetUser);
+      targetUser.friends.push(me);
+      
+      console.log(targetUser);
+    });  
+
+  };
+
+
+
+  assignButtons();
+
+});
+
+var stuff;
+
 var message = {
   username: 'Mel Brooks',
   text: 'It\'s good to be the king',
   roomname: 'lobby'
 };
 
+
+
 var trollMaker = function(messageObject) {
 
-  var script = `<script>alert("${`;
+  var script = `<script>alert("${ messageObject.text }")</script>`;
 
-    script += messageObject.text;
-
-    script += `}")</script>`;
-
-    messageObject.text = script;
+  messageObject.text = script;
 
   return script;
 };
@@ -59,17 +84,30 @@ var app = {
   },
 
   fetch: () => {
-    $.get('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages');
+    $.get('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages', function(data) {
+      //var parsedData = JSON.parse(data);
+      //console.dir(parsedData);
+      console.log(data);
+      stuff = data;
+      alert('message loaded successfully');
+    });
+    
   },
 
   clearMessages: () => {
     $('#chats').empty();
   },
 
-  renderMessage: () => {
-    var userText = message.text;
-    var userMessage = $('<div><div>');
-    userMessage.text(userText);
+  renderMessage: (message) => {
+    //var userText = message.text;
+    var $userMessage = $('<div class="messageBox"><div>');
+    
+    var $userClass = $('<span class="username"><span>');
+    $userClass.text(message.username);
+
+    console.log($userClass.text);
+    
+    //userMessage.text(userText);
 
 
     $('#chats').append(userMessage);
@@ -86,20 +124,18 @@ var app = {
 
 };
 
-
-var me = users.james;
-
-  $('.username').on('click',function(){
-    var targetUser = $('.username').innerHTML; //"nuno"
-    me.friends.push(targetUser);
-    targetUser.friends.push(me);
-  });
-
-
-
+var me = app.users.james;
 /* 
 
 app.send("$(‘body’).append('This is ground patrol to major Tom, can you hear me major Tom')")
+
+
+log everything:
+
+for(var i = 0; i < stuff.results.length-1; i++) {
+console.log(stuff.results[i].text);
+} 
+
 
 */
 
