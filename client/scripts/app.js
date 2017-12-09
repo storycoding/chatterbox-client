@@ -29,7 +29,7 @@ var stuff;
 var message = {
   username: 'Mel Brooks',
   text: 'It\'s good to be the king',
-  roomname: 'lobby'
+  roomname: 'lobby' // can also pass my prank here
 };
 
 
@@ -125,16 +125,22 @@ var app = {
 };
 
 var me = app.users.james;
+
+
+var logAll = function () {
+  for(var i = 0; i < stuff.results.length-1; i++) {
+    console.log(stuff.results[i].text);
+  } 
+}
+
 /* 
 
 app.send("$(‘body’).append('This is ground patrol to major Tom, can you hear me major Tom')")
 
 
-log everything:
 
-for(var i = 0; i < stuff.results.length-1; i++) {
-console.log(stuff.results[i].text);
-} 
+
+
 
 
 */
