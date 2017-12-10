@@ -2,37 +2,42 @@
 //temporary storage for all messages
 var messageLog;
 
-//example of message
-var messageTemplate = {
-  username: 'Mel Brooks',
-  text: 'It\'s good to be the king',
-  roomname: 'lobby' // can also pass my prank here
-};
-
 var users = {};
-
 var chatRooms = {};
 
 
+var reassignUsers = function() {
+  
+  $('.username').on('click', function(event) {
+    
+    event.preventDefault();
+    
+    var targetUser = this.innerHTML;
+    
+    if (!users[Object.keys(users)[0]].friends.includes(targetUser)) {
+      
+      users[Object.keys(users)[0]].friends.push(targetUser);
+    
+      console.log(users[Object.keys(users)[0]].friends); 
+      
+    }
+    
+    
+  });
+  
+};
+
+
+var refresh = function() {
+  app.fetch();
+  setTimeout(refresh, 5000);
+};
 
 /////.ready can be used with any javascript element
 $(document).ready(function() {
-  
-  
-  
-  
-  $('.username').on('click', function(event) {
-    event.preventDefault();
-    var targetUser = this.innerHTML; // "nuno"
-    console.log(targetUser);
 
-    targetUser = app.users[targetUser];
-    app.users.james.friends.push(targetUser);
-    //targetUser.friends.push(me);
-    
-    console.log(targetUser);
-  });
-  
+  refresh();
+
   
   $('.submit').on('click', function(event) {
     event.preventDefault();
@@ -48,8 +53,9 @@ $(document).ready(function() {
   
   app.fetch();
   
+  
+  
   $('.roomDrop').on('change', function() {
-    console.log('YEAH');
     
     app.clearMessages();
     
@@ -61,12 +67,9 @@ $(document).ready(function() {
       }
     }
   });
+  
 
 });
-
-
-
-
 
 
 
@@ -101,9 +104,8 @@ var app = {
   fetch: () => {
       
     $.get('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages', {order: '-createdAt'}, function(data) {
-      //var parsedData = JSON.parse(data);
-      //console.dir(parsedData);
-      console.log(data);
+     
+      //console.log(data);
       messageLog = data;
       
       //storing needs to occur here
@@ -117,13 +119,15 @@ var app = {
       //iterate through each message from messageLog
       for (var i = 0; i < messageLog.results.length; i++) {
         
+      
+        
         for (var key in messageLog.results[i]) {
           
           if (messageLog.results[i][key] === undefined || messageLog.results[i][key] === null
-          || (/[%<>]/g).test(messageLog.results[i][key]) ) {
+          || messageLog.results[i][key].length === 0 || (/[%<>]/g).test(messageLog.results[i][key]) ) {
             
             attacksDodged++;
-            //delete messageLog.results[i];
+          
             messageLog.results.splice(i, 1);
             break;
             
@@ -132,18 +136,17 @@ var app = {
           
         }
         
-        
-        if (chatRooms[messageLog.results[i].roomname] === undefined) {
+        //this condition is not checking properly
+        if ( chatRooms[messageLog.results[i].roomname] === undefined ) {
+          
           chatRooms[messageLog.results[i].roomname] = messageLog.results[i].roomname;
           
-          //add to the selector
           var $newRoom = $('<option></option>');
           
           $newRoom.value = messageLog.results[i].roomname;
           $newRoom[0].innerHTML = messageLog.results[i].roomname;
-          //<option value="lobby">lobby</option>
           
-          $('.roomDrop').append($newRoom);
+          app.renderRoom($newRoom);
           
         }
         
@@ -152,7 +155,10 @@ var app = {
       }
       
       
-      console.log('Attacks Dodged: ', attacksDodged);
+      //console.log('Attacks Dodged: ', attacksDodged);
+      
+      reassignUsers();
+      
     });
     
     
@@ -183,21 +189,11 @@ var app = {
     // append .messageBox div to #chats div
     $('#chats').append($userMessage);
   },
-
-  renderRoom: () => {
-    
-    //if userRoom exists in the rooms thing
-    var userRoom = message.roomname;
-    
-    if (chatRooms[userRoom] === undefined) {
-      
-      var room = $('<div><div>');
-      room.text(userRoom);
-
-      $('#roomSelect').append(room);
-    }
-    
-    
+  
+  
+  //currently not in use
+  renderRoom: (room) => {
+    $('.roomDrop').append(room);
   },
 
 };
