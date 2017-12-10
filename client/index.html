@@ -10,14 +10,33 @@
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script>
       // YOU DO NOT NEED TO EDIT THIS CODE
+      
+      /*
       if (!/(&|\?)username=/.test(window.location.search)) {
         var newSearch = window.location.search;
         if (newSearch !== '' & newSearch !== '?') {
           newSearch += '&';
         }
-        newSearch += 'username=' + (prompt('What is your name?') || 'anonymous');
+      
+        var userPrompt = prompt('What is your name?');
+        
+        newSearch += 'username=' + userPrompt || 'anonymous';
+        
         window.location.search = newSearch;
       }
+      
+      */
+      
+      $(document).ready(function() {
+        
+        var userPrompt = prompt('What is your name?');
+        
+        //newSearch += 'username=' + userPrompt || 'anonymous';
+        
+        users[userPrompt] = { name: userPrompt,
+          friends: [] };
+      });
+      
     </script>
     <!-- your scripts -->
     <script src="env/config.js"></script>
@@ -26,6 +45,12 @@
   <body>
     <div id="main">
       <h1>chatterbox</h1>
+
+        <form>
+          <select class="roomDrop" name="rooms">
+            <option value="lobby">lobby</option>
+          </select>
+        </form>
 
         <form> 
           <div>

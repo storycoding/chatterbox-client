@@ -47,9 +47,8 @@ body {
 }
 
 form {
-    padding: 20px;
+    padding: 5px;
     padding-left: 0;
-    margin-bottom: 20px;
 }
 
 form input[type=text] {
@@ -94,3 +93,6 @@ form input[type=text] {
 
 }
 
+.roomDrop {
+   padding: 5px; 
+}

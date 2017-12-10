@@ -1,70 +1,79 @@
-$(document).ready(function() {
-  
 
-  var assignButtons = () => {
-
-    $('.username').on('click', function() {
-      var targetUser = this.innerHTML; // "nuno"
-      console.log(targetUser);
-
-      targetUser = app.users[targetUser];
-      me.friends.push(targetUser);
-      targetUser.friends.push(me);
-      
-      console.log(targetUser);
-    });
-    
-    $('.submit').on('click', function() {
-   
-      var message = createMessage();
-      console.log(message);
-      //app.send(message);
-    
-    });  
-
-  };
-
-
-  assignButtons();
-
-});
-
+//temporary storage for all messages
 var messageLog;
 
-var message = {
+//example of message
+var messageTemplate = {
   username: 'Mel Brooks',
   text: 'It\'s good to be the king',
   roomname: 'lobby' // can also pass my prank here
 };
 
+var users = {};
+
+var chatRooms = {};
 
 
-var trollMaker = function(messageObject) {
 
-  var script = `<script>alert("${ messageObject.text }")</script>`;
+/////.ready can be used with any javascript element
+$(document).ready(function() {
+  
+  
+  
+  
+  $('.username').on('click', function(event) {
+    event.preventDefault();
+    var targetUser = this.innerHTML; // "nuno"
+    console.log(targetUser);
 
-  messageObject.text = script;
+    targetUser = app.users[targetUser];
+    app.users.james.friends.push(targetUser);
+    //targetUser.friends.push(me);
+    
+    console.log(targetUser);
+  });
+  
+  
+  $('.submit').on('click', function(event) {
+    event.preventDefault();
+    //takes the text from the messageInput and sends it
+    var message = createMessage();
+    
+    //logs a copy of the message object
+    console.log(message);
+    app.send(message);
+    
+    app.fetch();
+  });
+  
+  app.fetch();
+  
+  $('.roomDrop').on('change', function() {
+    console.log('YEAH');
+    
+    app.clearMessages();
+    
+    for (var i = 0; i < messageLog.results.length; i++) {
+    
+      // select all the messages that contain roomDrop[0].value
+      if (messageLog.results[i].roomname === $('.roomDrop')[0].value) {
+        app.renderMessage(messageLog.results[i]);
+      }
+    }
+  });
 
-  return script;
-};
+});
+
+
+
+
 
 
 
 var app = {
 
-  users: {
-
-    nuno: {
-      friends: []
-    },
-
-    james: {
-      friends: []
-    }
-  },
 
   server: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
-
 
   init: () => {
 
@@ -88,7 +97,7 @@ var app = {
     });
   },
 
-
+  // also gets the roomnames
   fetch: () => {
       
     $.get('http://parse.sfm6.hackreactor.com/chatterbox/classes/messages', {order: '-createdAt'}, function(data) {
@@ -97,43 +106,55 @@ var app = {
       console.log(data);
       messageLog = data;
       
-      var messageObjectArray = messageLog.results;
+      //storing needs to occur here
       
-      
+    
       var attacksDodged = 0;
+      
+      //clears the chat
+      app.clearMessages();
+      
       //iterate through each message from messageLog
-      for (var i = messageObjectArray.length - 1; i >= 0; i--) {
+      for (var i = 0; i < messageLog.results.length; i++) {
         
-        if (messageObjectArray[i] === undefined) {
-          continue;
-        }
-        
-        
-        if (messageObjectArray[i].text === undefined) {
-          continue;
-        }
-        //if (messageObjectArray[i].text.charAt(0) === '<') { // starts with script
-        if ((/[-%[\]{}<>()*+?.,\\^$|#\s]/g).test(messageObjectArray[i].text)) {
-          attacksDodged++;
-          delete messageObjectArray[i];
-          continue;
-        }
+        for (var key in messageLog.results[i]) {
+          
+          if (messageLog.results[i][key] === undefined || messageLog.results[i][key] === null
+          || (/[%<>]/g).test(messageLog.results[i][key]) ) {
             
-        if (messageObjectArray[i].username === undefined) {
-          continue;
+            attacksDodged++;
+            //delete messageLog.results[i];
+            messageLog.results.splice(i, 1);
+            break;
+            
+          } 
+          
+          
         }
-        //if (messageObjectArray[i].username.charAt(0) === '<') { // starts with script
-        if ((/[-%[\]{}<>()*+?.,\\^$|#\s]/g).test(messageObjectArray[i].username)) {
-          attacksDodged++;
-          delete messageObjectArray[i];
+        
+        
+        if (chatRooms[messageLog.results[i].roomname] === undefined) {
+          chatRooms[messageLog.results[i].roomname] = messageLog.results[i].roomname;
+          
+          //add to the selector
+          var $newRoom = $('<option></option>');
+          
+          $newRoom.value = messageLog.results[i].roomname;
+          $newRoom[0].innerHTML = messageLog.results[i].roomname;
+          //<option value="lobby">lobby</option>
+          
+          $('.roomDrop').append($newRoom);
+          
         }
-        app.renderMessage(messageObjectArray[i]);
+        
+        
+        app.renderMessage(messageLog.results[i]);
       }
       
       
       console.log('Attacks Dodged: ', attacksDodged);
-      alert('message loaded successfully');
     });
+    
     
     
   },
@@ -164,70 +185,46 @@ var app = {
   },
 
   renderRoom: () => {
+    
+    //if userRoom exists in the rooms thing
     var userRoom = message.roomname;
-    var room = $('<div><div>');
-    room.text(userRoom);
+    
+    if (chatRooms[userRoom] === undefined) {
+      
+      var room = $('<div><div>');
+      room.text(userRoom);
 
-    $('#roomSelect').append(room);
+      $('#roomSelect').append(room);
+    }
+    
+    
   },
 
-
-
-  refresh: () => {
-    //fetch() // defines messageLog
-    
-    app.fetch(); // establish a promise //fetched results might not be ready yet
-    
-    //more recent ones first / twitter style
-    
-    var messageObjectArray = messageLog.results;
-    
-    //iterate through each message from messageLog
-    for (var i = messageObjectArray.length - 1; i >= 0; i--) {
-      app.renderMessage(messageObjectArray[i]);
-    }
-
-  }
-
 };
 
-sendMessage: () => {
-  
-  
-};
+
+
+
 
 var createMessage = function() {
   var $textBox = $('.messageInput');
   
   var messageObject = {};
   messageObject.text = $textBox[0].value;
-  messageObject.username = me.username; /////////////////// me.username needs to be the popup name
-  messageObject.roomname = 'lobby'; /////////////////// update when rooms get created
-
+  messageObject.username = users[Object.keys(users)[0]].name; /////////////////// me.username needs to be the popup name
+  messageObject.roomname = $('.roomDrop')[0].value;
+  $textBox[0].value = '';
   return messageObject;
 };
 
-// create a function that:
-  //transform input from textbox into a message object
-    //message.text = inputText
-    //message.username = our username
-    //message.roomname = current room // work on this
-
-// when the send button is pushed
-// make an AJAX send request
-
-//WIP
-var me = app.users.james;
 
 
-var logAll = function () {
-  for (var i = 0; i < stuff.results.length - 1; i++) {
-    console.log(stuff.results[i].text);
-  } 
+
+
+
+//takes in a message and alerts it on everyone's computer
+var alertXSS = function(messageObject) {
+  var script = `<script>alert("${ messageObject.text }")</script>`;
+  messageObject.text = script;
+  return script;
 };
-
-/*
-message.text = `<script>alert("${message.text}")</script>`
-*/
-
-//app.send("$(‘body’).append('This is ground patrol to major Tom, can you hear me major Tom')")
